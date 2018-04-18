@@ -1,0 +1,7 @@
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\obj\Debug\MachineLearning.csproj.CoreCompileInputs.cache
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\bin\Debug\MachineLearning.exe.config
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\bin\Debug\MachineLearning.exe
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\bin\Debug\MachineLearning.pdb
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\obj\Debug\MachineLearning.exe
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\obj\Debug\MachineLearning.pdb
+C:\Users\ozhang\source\repos\MachineLearning\MachineLearning\obj\Debug\MachineLearning.csprojResolveAssemblyReference.cache
