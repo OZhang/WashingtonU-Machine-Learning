@@ -11,9 +11,10 @@ namespace MachineLearning.Boosting
         private static DataSet DataSet { get; set; }
         private static DataTable Test { get { return DataSet.Tables[test_data]; } }
         private static DataTable Train { get { return DataSet.Tables[train_data]; } }
-        private List<string> features = new List<string>
+        private static string target ="safe_loans";
+
+        private static List<string> features = new List<string>
         {
-            "safe_loans",
             "grade_A",
             "grade_B",
             "grade_C",
@@ -45,22 +46,23 @@ namespace MachineLearning.Boosting
             LoadData();
 
             if (!CheckPoint1()) return;
+            if (!CheckPoint2()) return;
 
         }
         private static void LoadData()
         {
-            DataSet = CsvReader.Read(@"C:\ML_Data",
+            DataSet = CsvReader.Read(@"..\..\..\ML_Data",
                 test_data, train_data);
         }
-        public static Tuple<double,int> Intermediate_Node_Weighted_Mistakes(List<int> labels_In_Node, 
+        public static Tuple<double, int> Intermediate_Node_Weighted_Mistakes(List<string> labels_In_Node,
             List<double> data_Weights)
         {
             var total_weight_positive = 0d;
             var total_weight_negative = 0d;
-            for(var i = 0; i< labels_In_Node.Count;i++)
-                //(var label in labels_In_Node)
+            for (var i = 0; i < labels_In_Node.Count; i++)
+            //(var label in labels_In_Node)
             {
-                var label = labels_In_Node[i];
+                var label = Convert.ToInt32(labels_In_Node[i]);
 
                 if (label == 1)
                     total_weight_positive += data_Weights[i];
@@ -78,7 +80,7 @@ namespace MachineLearning.Boosting
 
         private static bool CheckPoint1()
         {
-            var example_lables = new List<int> { -1, -1, 1, 1, 1 };
+            var example_lables = new List<string> { "-1", "-1", "1", "1", "1" };
             var example_data_weights = new List<double>
             {
                 1.0,2.0,0.5,1.0,1.0
@@ -96,23 +98,84 @@ namespace MachineLearning.Boosting
             }
         }
 
-        public void best_splitting_feature(List<string[]> data, List<string> features, string target, 
+        private static bool CheckPoint2()
+        {
+            var example_data_weights = init_weights(Train.Rows.Count, 1.5d);
+            if (best_splitting_feature(Train, features, target, example_data_weights) == "term_36months")
+            {
+                Console.WriteLine("Check Point 2 Test passed!");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Check Point 2 Test failed...try again!");
+                return false;
+            }
+        }
+
+        private static List<double> init_weights(int count, double init_weight)
+        {
+            var weights = new List<double>();
+            for(var i = 0; i < count; i++)
+            {
+                weights.Add(init_weight);
+            }
+            return weights;
+        }
+
+        public static string best_splitting_feature(DataTable data, List<string> features, string target,
             List<double> data_weights)
         {
             var best_feature = string.Empty;
-            var best_error = 0d;
-            for(var i =0;i< features.Count; i++)
+            var best_error = double.MaxValue;
+
+            for (var i = 0; i < features.Count; i++)
             {
-                var feature = features[i];
-                var left_split_index = data.FindIndex(v => v[i] == 
-                    (Convert.ToInt32(false)).ToString());
-                var right_split_index = data.FindIndex(v => v[i] == 
-                    (Convert.ToInt32(true)).ToString());
+                var left_target = new List<string>();
+                var right_target = new List<string>();
+                var left_weights = new List<double>();
+                var right_weights = new List<double>();
+                //var feature = features[i.
+                for (var j = 0; j < data.Rows.Count; j++)
+                {
+                    if (data.Rows[j][i].ToString().Equals((Convert.ToInt32(false)).ToString()))
+                    {
+                        var row = data.Rows[j];
+                        left_target.Add(row[target].ToString());
+                        left_weights.Add(data_weights[j]);
+                    }
+                    else
+                    {
+                        var row = data.Rows[j];
+                        right_target.Add(row[target].ToString());
+                        right_weights.Add(data_weights[j]);
+                    }
+                }
+                //Calculate the weight of mistakes for left and right sides
+                var left_weighted_mistakes = Intermediate_Node_Weighted_Mistakes(left_target, left_weights);
+                var right_weighted_mistakes = Intermediate_Node_Weighted_Mistakes(right_target, right_weights);
+                //  Compute weighted error by computing
+                //( [weight of mistakes (left)] + [weight of mistakes (right)] ) / [total weight of all data points]
+                var error = (left_weighted_mistakes.Item1 + right_weighted_mistakes.Item1) / Sum(data_weights);
 
-
-                //var left_data_weights = 
-
-
+                //If this is the best error we have found so far, store the feature and the error
+                if (error < best_error)
+                {
+                    best_feature = features[i];
+                    best_error = error;
+                }
             }
+            return best_feature;
+        }
+
+        private static double Sum(List<double> data)
+        {
+            var total_weights = 0d;
+            foreach (var d in data)
+            {
+                total_weights += d;
+            }
+            return total_weights;
+        }
     }
 }
